@@ -56,8 +56,20 @@ resultado = classificar_feedback(feedback)
 print(f"[{resultado['classe']} | Confiança: {resultado['confianca']:.2%}]")
 Saída esperada: [POSITIVO | Confiança: 95.70%]
 
-📈 Resultados e Avaliação
+## 📊 Resultados e Desempenho do Modelo
 
-    Dataset Utilizado: IMDB Movie Reviews (50.000 amostras balanceadas).
+O modelo atingiu uma acurácia consistente superior a **85%** no conjunto de teste independente. Abaixo estão as visualizações detalhadas do comportamento da rede neural durante o treinamento e avaliação:
 
-    Métricas Principais: Acurácia superior a 85% no conjunto de teste independente, avaliada por meio de curvas de aprendizado, matriz de confusão e relatório estatístico detalhado (Precision, Recall, F1-Score).
+### 1. Curvas de Aprendizado (Acurácia e Loss)
+As curvas demonstram a evolução estável do aprendizado supervisionado, controladas eficientemente pelo mecanismo de *Early Stopping*:
+
+<p align="center">
+  <img src="assets/curvas_aprendizagem.png" alt="Curvas de Aprendizado" width="850"/>
+</p>
+
+### 2. Matriz de Confusão
+A matriz de confusão construída no conjunto de teste independente valida o equilíbrio entre as classes de feedback positivo e negativo:
+
+<p align="center">
+  <img src="assets/matriz_confusao.png" alt="Matriz de Confusão" width="450"/>
+</p>
