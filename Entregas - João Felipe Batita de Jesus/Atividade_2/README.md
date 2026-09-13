@@ -54,7 +54,7 @@ feedback = "This app is amazing, it works perfectly and the interface is super i
 resultado = classificar_feedback(feedback)
 
 print(f"[{resultado['classe']} | Confiança: {resultado['confianca']:.2%}]")
-# Saída esperada: [POSITIVO | Confiança: 95.70%]
+Saída esperada: [POSITIVO | Confiança: 95.70%]
 
 📈 Resultados e Avaliação
 
