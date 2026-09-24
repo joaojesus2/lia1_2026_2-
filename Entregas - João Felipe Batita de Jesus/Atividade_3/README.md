@@ -51,26 +51,6 @@ src/
 
 ---
 
-## 🔧 Instalação
-
-```bash
-npm install @tensorflow/tfjs @tensorflow-models/coco-ssd onnxruntime-web
-```
-
-Depois, use o componente na sua página:
-
-```tsx
-import DetectorApp from "@/components/DetectorApp";
-
-export default function Page() {
-  return <DetectorApp />;
-}
-```
-
-Nenhuma variável de ambiente, chave de API ou servidor é necessário.
-
----
-
 ## 🎚️ Como funciona a troca de modelo
 
 Se o usuário **não mexer em nada**, o app usa o modelo padrão (COCO-SSD, nível "Equilibrado"). A troca é opcional e tem três caminhos:
@@ -92,28 +72,20 @@ Uma URL apontando para um arquivo `.onnx`, hospedado com CORS habilitado.
 
 ---
 
-## ⚠️ Limitação importante: nem todo modelo ONNX funciona automaticamente
+## ⚠️ Limitação: o código não suporta qualquer modelo ONNX
 
-A ideia original era suportar **qualquer** modelo ONNX de detecção de objetos. Na prática, isso **não é totalmente possível de forma genérica**, e é importante entender por quê antes de reportar um "bug":
+O carregamento do arquivo `.onnx` funciona para qualquer modelo. A **interpretação do resultado** (`detectOnnx()`, em `objectDetector.ts`), porém, só está implementada para um formato de saída específico.
 
-Diferente de um formato de arquivo com estrutura fixa (como um PDF ou uma imagem PNG), um arquivo `.onnx` é apenas um grafo de operações matemáticas — ele **não define um padrão único de entrada e saída** para detecção de objetos. Cada arquitetura de modelo (YOLOv5, YOLOv8, YOLOv11, SSD, Faster R-CNN, DETR, RT-DETR, EfficientDet...) organiza a saída de um jeito diferente:
+**Funciona sem problema:**
+- Modelos **YOLOv8** e **YOLOv11** (Ultralytics) — saída única `[1, 4+classes, caixas]`, coordenadas centralizadas (cx, cy, w, h).
 
-- **YOLOv8 / YOLOv11 (Ultralytics)**: saída única `[1, 4+classes, caixas]`, coordenadas centralizadas (cx, cy, w, h).
-- **YOLOv5**: saída `[1, caixas, 5+classes]`, com um valor extra de "objectness" separado das classes.
-- **SSD / Faster R-CNN (padrão TF Object Detection API)**: quatro saídas separadas (`detection_boxes`, `detection_classes`, `detection_scores`, `num_detections`).
-- **DETR / RT-DETR**: arquitetura baseada em Transformers, com formato de saída completamente diferente dos anteriores.
+**Não funciona (saída interpretada incorretamente — caixas erradas, classes trocadas ou nenhuma detecção):**
+- **YOLOv5** — saída `[1, caixas, 5+classes]`, com valor de "objectness" separado.
+- **SSD / Faster R-CNN** (padrão TF Object Detection API) — quatro saídas separadas (`detection_boxes`, `detection_classes`, `detection_scores`, `num_detections`).
+- **DETR / RT-DETR** — formato de saída baseado em Transformers, diferente dos anteriores.
+- Qualquer outra arquitetura com formato de saída distinto do YOLOv8/v11.
 
-**Este projeto implementa o parsing assumindo o formato do YOLOv8/YOLOv11 (Ultralytics)**, por ser o mais comum entre modelos customizados exportados hoje em dia. Isso está implementado em `detectOnnx()`, dentro de `objectDetector.ts`.
-
-### O que acontece se o modelo do usuário for de outra arquitetura?
-O app **não vai travar**, mas o resultado será incorreto: caixas em posições erradas, classes trocadas, ou nenhuma detecção. Não há como o navegador "adivinhar" o formato de saída de um ONNX arbitrário sem informação adicional.
-
-### O que fazer nesse caso?
-1. Confirme com o autor do modelo (ou a ferramenta usada para treiná-lo) qual é a arquitetura e o formato exato do tensor de saída.
-2. Ajuste a função `detectOnnx()` em `objectDetector.ts` para interpretar esse formato específico (a lógica de pré-processamento da imagem de entrada pode continuar igual — normalmente é só a etapa de leitura da saída que muda).
-3. Alternativamente, reexporte o modelo original para o formato YOLOv8 (se a ferramenta de treino permitir), o que evita precisar mexer no código.
-
-Ou seja: o app aceita **qualquer arquivo `.onnx`** no sentido de que tenta carregá-lo e rodá-lo — mas a **interpretação correta do resultado** só é garantida para modelos no formato YOLOv8/YOLOv11. Isso é uma limitação da falta de padronização do ecossistema ONNX para detecção de objetos, não uma falha de implementação.
+Para suportar um desses formatos, é necessário reescrever a etapa de leitura da saída em `detectOnnx()` — a etapa de pré-processamento da imagem de entrada não muda.
 
 ---
 
